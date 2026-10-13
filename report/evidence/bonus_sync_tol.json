@@ -1,0 +1,93 @@
+{
+  "experiment": "bonus_sync_tol",
+  "student_id": "2A202602505",
+  "ran_at": "2026-10-13T04:03:43.645149+00:00",
+  "default_sync_tol_ms": 150,
+  "method": "dbt run --vars '{sync_tol_ms: N}' on silver_frame_telemetry + gold_dataset_frames; dbt_project.yml unchanged; default rebuilt afterwards",
+  "results": [
+    {
+      "sync_tol_ms": 50,
+      "sync_lost": {
+        "drive_a": 272,
+        "drive_b": 328
+      },
+      "gold_frames": 538,
+      "by_split": {
+        "test": 103,
+        "train": 360,
+        "val": 75
+      },
+      "trips_by_split": {
+        "test": 4,
+        "train": 18,
+        "val": 4
+      },
+      "gold_avg_sync_gap_ms": 10.0,
+      "gold_max_sync_gap_ms": 20,
+      "dataset_version": "2da0a67fb137"
+    },
+    {
+      "sync_tol_ms": 150,
+      "sync_lost": {
+        "drive_a": 7,
+        "drive_b": 7
+      },
+      "gold_frames": 1019,
+      "by_split": {
+        "test": 190,
+        "train": 686,
+        "val": 143
+      },
+      "trips_by_split": {
+        "test": 4,
+        "train": 18,
+        "val": 4
+      },
+      "gold_avg_sync_gap_ms": 53.0,
+      "gold_max_sync_gap_ms": 120,
+      "dataset_version": "bc48cab9b3bd"
+    },
+    {
+      "sync_tol_ms": 300,
+      "sync_lost": {
+        "drive_a": 7,
+        "drive_b": 7
+      },
+      "gold_frames": 1019,
+      "by_split": {
+        "test": 190,
+        "train": 686,
+        "val": 143
+      },
+      "trips_by_split": {
+        "test": 4,
+        "train": 18,
+        "val": 4
+      },
+      "gold_avg_sync_gap_ms": 53.0,
+      "gold_max_sync_gap_ms": 120,
+      "dataset_version": "bc48cab9b3bd"
+    },
+    {
+      "sync_tol_ms": 1000,
+      "sync_lost": {
+        "drive_a": 5,
+        "drive_b": 6
+      },
+      "gold_frames": 1022,
+      "by_split": {
+        "test": 190,
+        "train": 689,
+        "val": 143
+      },
+      "trips_by_split": {
+        "test": 4,
+        "train": 18,
+        "val": 4
+      },
+      "gold_avg_sync_gap_ms": 55.0,
+      "gold_max_sync_gap_ms": 884,
+      "dataset_version": "5c05a6a83746"
+    }
+  ]
+}

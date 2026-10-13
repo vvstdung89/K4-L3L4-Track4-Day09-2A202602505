@@ -139,6 +139,19 @@ order by pct_dropped desc
 
 Kết quả: năm trip bị loại nhiều nhất đều thuộc drive_a: `trip-04622` 56,7% (34/60 khung), `trip-03904` 50,0%, `trip-02086` 46,7%, `trip-08888` 40,0%, `trip-07774` 38,2%. Tính theo drive, drive_a mất 27,6% (436/602 khung giữ lại), drive_b chỉ 9,5% (583/644). Cả 26 trip đều có `lighting = Day`, nên ánh sáng không giải thích được chênh lệch. Nguyên nhân chính là khung trùng: drive_a có 149 khung trùng so với 53 của drive_b, do xe chạy chậm (68% khung lúc 0–5 km/h bị coi là trùng) và đoạn camera đứng hình 6 giây, cộng thêm các khung đen và mờ được cấy vào drive_a. Về vận hành: mỗi trip của drive_a cho ít dữ liệu huấn luyện hơn hẳn, và tỉ lệ loại cao bất thường ở một trip là dấu hiệu nên kiểm tra camera hoặc cách lấy mẫu.
 
+## Điểm cộng: thí nghiệm riêng với `sync_tol_ms`
+
+Câu hỏi: ngưỡng ghép frame với telemetry (`sync_tol_ms`, mặc định 150 ms trong `dbt/dbt_project.yml`) ảnh hưởng thế nào tới dataset gold? Cách làm: chạy lại `silver_frame_telemetry` và `gold_dataset_frames` với `dbt run --vars '{sync_tol_ms: N}'` cho N = 50, 150, 300, 1000. Tôi không sửa file cấu hình, nên không có gì phải khôi phục. Sau đó dựng lại với giá trị mặc định và kiểm tra: `verify` 27/27, gold 1019 khung. Bằng chứng: `report/evidence/bonus_sync_tol.json`.
+
+| `sync_tol_ms` | `sync_lost` (A / B) | khung gold | train / val / test | độ trễ TB / max trong gold (ms) | `dataset_version` |
+|---|---|---|---|---|---|
+| 50 | 272 / 328 | 538 | 360 / 75 / 103 | 10 / 20 | `2da0a67fb137` |
+| **150 (mặc định)** | 7 / 7 | **1019** | 686 / 143 / 190 | 53 / 120 | **`bc48cab9b3bd`** |
+| 300 | 7 / 7 | 1019 | 686 / 143 / 190 | 53 / 120 | `bc48cab9b3bd` |
+| 1000 | 5 / 6 | 1022 | 689 / 143 / 190 | 55 / 884 | `5c05a6a83746` |
+
+Giải thích: độ trễ frame–telemetry không phân bố đều mà dồn thành hai cụm, 0–20 ms (646 khung) và 81–120 ms (586 khung), vì telemetry đến khoảng mỗi 77 ms còn frame lấy mẫu mỗi 500 ms. Không có khung nào trễ 121–300 ms, nên 150 và 300 cho **cùng** dataset và cùng `dataset_version`. Hạ xuống 50 ms cắt mất cả cụm 81–120 ms: dataset giảm 47% (1019 → 538 khung) chỉ để độ trễ trung bình giảm từ 53 xuống 10 ms, một mức chính xác không cần thiết khi telemetry đến mỗi 77 ms. Nâng lên 1000 ms chỉ thêm 3 khung (384–884 ms), là các khung ở mép hai đoạn cảm biến mất tín hiệu: chúng mang tốc độ và góc lái đã cũ gần 1 giây, tức nhãn sai, nên không đáng giữ. 9 khung trễ trên 1 giây (trong đoạn mất tín hiệu) và 2 khung đầu mỗi drive (chưa có dòng telemetry nào trước đó, nên ASOF join không tìm được) luôn bị loại. Kết luận: 150 ms là lựa chọn hợp lý, vì nằm ngay trên cụm 120 ms. Mọi giá trị trong khoảng 121–383 ms đều cho cùng kết quả, nên dataset không nhạy với ngưỡng này, trừ khi ngưỡng nhỏ hơn chu kỳ telemetry.
+
 ## Nhìn lại
 
 Điều bạn thấy bất ngờ nhất, điều gì còn chưa rõ, và một lỗi dữ liệu mà bạn nghĩ pipeline **chưa** bắt được (nếu có). Tối đa 8 dòng.
